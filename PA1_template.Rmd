@@ -4,15 +4,93 @@ output:
   html_document:
     keep_md: true
 ---
+This Data analysis is created for a peer assessment for  
+[Reproductive Reserarch](https://www.coursera.org/course/repdata) course which is module in 
+Data Science Specialization by Johns Hopkins University.
 
+Author: Marcin Wiśniowski
+
+Date: 2015-01-14
+
+Libraries used for assessment:
+```{r libraries, message=FALSE}
+library("data.table")
+library("ggplot2")
+library("lubridate")
+```
+
+## Dataset
+
+The data for this assignment can be downloaded from the course website:
+[Activity monitoring data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) 52K
+
+The variables included in this dataset are:
+
+* **steps**: Number of steps taking in a 5-minute interval (missing values are coded as `NA`)
+
+* **date**: The date on which the measurement was taken in YYYY-MM-DD format
+
+* **interval**: Identifier for the 5-minute interval in which measurement was taken
+
+
+The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 
+observations in this dataset.
 
 ## Loading and preprocessing the data
+Dataset should be stored in the same directory as processing script file. First step is to check if
+Dataset file is available and then uncompress it for future processing.
+```{r getting_data}
+if( !file.exists("activity.zip") ){
+    download.file(
+        "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", 
+        destfile="activity.zip",
+        method="curl"
+        )
+}
+unzip("activity.zip")
+```
 
+Unzipped file can be easily read with read.csv function. First step is to transform date coded as
+YYYY-MM-DD to the date object within data table.
 
+```{r reading_data}
+data <- fread("activity.csv")
+data$date <- ymd(data$date)
+```
 
 ## What is mean total number of steps taken per day?
 
+During this analysis the missing values will be ignored. As a preparation for this task new data
+table will be created. This data table will have two columns:
 
+* **date**: The date on which the measurement was taken coded as POSIXct date object
+
+* **steps**: Total number of step that were mesured through day
+
+```{r total_steps_per_day}
+data.total_steps <- data[,sum(steps, na.rm=TRUE),by=date]
+setnames(data.total_steps, c("date", "steps"))
+```
+
+This table can be easily visualized as a histogram
+
+```{r plot_total_steps_per_day}
+plot.total_steps <- ggplot( data.total_steps, aes(x=steps) ) 
+plot.total_steps <- plot.total_steps + geom_histogram(binwidth = 1000, aes(fill = ..count..))
+plot.total_steps <- plot.total_steps + xlab("Total steps per day") + ylab("Frequency")
+plot.total_steps <- plot.total_steps + ggtitle("Frequency distribution of total steps per day")
+plot.total_steps
+```
+
+Analyzing the raw nmbers, it gives the conclusion of:
+
+* Mean number of steps per day: **9354**
+
+* Median of steps per day: **10395**
+
+```{r summary_total_steps_per_day}
+summary( data.total_steps )
+```
 
 ## What is the average daily activity pattern?
 
