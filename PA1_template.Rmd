@@ -83,7 +83,7 @@ plot.total_steps <- plot.total_steps + geom_rug(sides="b")
 plot.total_steps
 ```
 
-Analyzing the raw nmbers, it gives the conclusion of:
+Analyzing the raw numbers, it gives the conclusion of:
 
 * Mean number of steps per day: **9354**
 
@@ -98,17 +98,17 @@ summary( data.total_steps )
 For this analysis new data table, should be created. This table should have definde two columns: 
 
 * **interval**: Identifier for the 5-minute interval in which measurement was taken,
-* **average_steps**: The average number of steps recorded for the interval.
+* **mean_steps**: The average number of steps recorded for the interval.
 
 ```{r average_steps_per_day}
 data.avarages <- data[,mean(steps, na.rm=TRUE),by=interval]
-setnames(data.avarages, c("interval", "steps"))
+setnames(data.avarages, c("interval", "mean_steps"))
 ```
 
 While looking closer to the avarage values of the steps, the most active intervals can be spoted.
 
 ```{r plot_avgarage_steps_per_day}
-plot.avg_steps <- ggplot(data.avarages, aes(x=interval, y=steps))
+plot.avg_steps <- ggplot(data.avarages, aes(x=interval, y=mean_steps))
 plot.avg_steps <- plot.avg_steps + geom_line(colour="darkblue") +  geom_point(colour="steelblue")
 plot.avg_steps <- plot.avg_steps + ggtitle("Activity per 5-minute Interval")
 plot.avg_steps <- plot.avg_steps + xlab("Intervals") + ylab("Avarage Steps")
@@ -123,16 +123,66 @@ plot.avg_steps <- plot.avg_steps + scale_y_continuous(
 plot.avg_steps
 ```
 
-The peak activity of **206.1698** steps in avarage was recorded in 5-minute interval identified 
-as **835**. 
+The peak activity of **206.1698** steps in avarage was recorded in 5-minute interval identified as 
+**835**. 
 
 ```{r max_avarage_steps}
-maximum_steps <- max(data.avarages$steps)
-data.avarages[data.avarages$steps == maximum_steps]
+maximum_steps <- max(data.avarages$mean_steps)
+data.avarages[data.avarages$mean_steps == maximum_steps]
 ```
 
 ## Imputing missing values
 
+Provided data set has exacly **2304** rows with missing values
 
+```{r rows_with_missing_values}
+sum(is.na(data$steps))
+```
+ 
+The strategy within this analysis has adopted strategy to replace missing values of steps with the 
+mean activity for that 5-minute interval. Mean values will be rounded to simulate real observation.
+
+Using this strategy new data table will be created by joining two tables:
+
+* **data**
+* **data.avarages**
+
+```{r replace_missing_values}
+data.imputed <- merge(data, data.avarages, by="interval")
+data.imputed$mean_steps <- round(data.imputed$mean_steps)
+data.missing <- is.na(data.imputed$steps)
+data.imputed$steps[data.missing] <- data.imputed$mean_steps[data.missing] 
+```
+
+After replacing missing values of steps with the mean one, check how it influenced on distribution
+of daily activities.
+
+```{r imputed_total_steps_per_day}
+data.imputed_total_steps <- data.imputed[,sum(steps, na.rm=TRUE),by=date]
+setnames(data.imputed_total_steps, c("date", "steps"))
+```
+
+This table can be easily visualized as a histogram
+
+```{r plot_imputed_total_steps_per_day}
+plot.imputed_steps <- ggplot( data.imputed_total_steps, aes(x=steps) ) 
+plot.imputed_steps <- plot.imputed_steps + geom_histogram(binwidth = 1000, aes(fill = ..count..))
+plot.imputed_steps <- plot.imputed_steps + xlab("Total steps per day") + ylab("Frequency")
+plot.imputed_steps <- plot.imputed_steps + ggtitle("Frequency distribution of total steps per day")
+plot.imputed_steps <- plot.imputed_steps + geom_rug(sides="b")
+plot.imputed_steps
+```
+
+The effect of imputing a value for all missing observations of steps has increased the value of both
+mean and median. What is more mean and median values are now more coincindent. Another effect of 
+this action is decreasing weight of 0 values and increasing the domination of avarages.
+
+* Mean number of steps per day: **10762**
+
+* Median of steps per day: **10766**
+
+```{r summary_imputed_total_steps_per_day}
+summary( data.imputed_total_steps )
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
