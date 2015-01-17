@@ -12,7 +12,7 @@ Author: Marcin Wiśniowski
 
 Date: 2015-01-14
 
-Libraries used for assessment:
+### Libraries used for assessment
 ```{r libraries, message=FALSE}
 library("data.table")
 library("ggplot2")
@@ -79,6 +79,7 @@ plot.total_steps <- ggplot( data.total_steps, aes(x=steps) )
 plot.total_steps <- plot.total_steps + geom_histogram(binwidth = 1000, aes(fill = ..count..))
 plot.total_steps <- plot.total_steps + xlab("Total steps per day") + ylab("Frequency")
 plot.total_steps <- plot.total_steps + ggtitle("Frequency distribution of total steps per day")
+plot.total_steps <- plot.total_steps + geom_rug(sides="b")
 plot.total_steps
 ```
 
@@ -94,7 +95,41 @@ summary( data.total_steps )
 
 ## What is the average daily activity pattern?
 
+For this analysis new data table, should be created. This table should have definde two columns: 
 
+* **interval**: Identifier for the 5-minute interval in which measurement was taken,
+* **average_steps**: The average number of steps recorded for the interval.
+
+```{r average_steps_per_day}
+data.avarages <- data[,mean(steps, na.rm=TRUE),by=interval]
+setnames(data.avarages, c("interval", "steps"))
+```
+
+While looking closer to the avarage values of the steps, the most active intervals can be spoted.
+
+```{r plot_avgarage_steps_per_day}
+plot.avg_steps <- ggplot(data.avarages, aes(x=interval, y=steps))
+plot.avg_steps <- plot.avg_steps + geom_line(colour="darkblue") +  geom_point(colour="steelblue")
+plot.avg_steps <- plot.avg_steps + ggtitle("Activity per 5-minute Interval")
+plot.avg_steps <- plot.avg_steps + xlab("Intervals") + ylab("Avarage Steps")
+plot.avg_steps <- plot.avg_steps + scale_x_continuous(
+    breaks=append(seq(0,2500, by=500), 835),
+    minor_breaks=seq(0,2500, by=250)
+    )
+plot.avg_steps <- plot.avg_steps + scale_y_continuous(
+    breaks=append(seq(0,250, by=50), 206),
+    minor_breaks=seq(0,250, by=25)
+    )
+plot.avg_steps
+```
+
+The peak activity of **206.1698** steps in avarage was recorded in 5-minute interval identified 
+as **835**. 
+
+```{r max_avarage_steps}
+maximum_steps <- max(data.avarages$steps)
+data.avarages[data.avarages$steps == maximum_steps]
+```
 
 ## Imputing missing values
 
