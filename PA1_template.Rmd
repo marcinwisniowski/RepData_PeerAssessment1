@@ -1,6 +1,6 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
-output: 
+output:
   html_document:
     keep_md: true
 ---
@@ -152,6 +152,7 @@ data.imputed <- merge(data, data.avarages, by="interval")
 data.imputed$mean_steps <- round(data.imputed$mean_steps)
 data.missing <- is.na(data.imputed$steps)
 data.imputed$steps[data.missing] <- data.imputed$mean_steps[data.missing] 
+data.imputed[,mean_steps:=NULL]
 ```
 
 After replacing missing values of steps with the mean one, check how it influenced on distribution
@@ -186,3 +187,31 @@ summary( data.imputed_total_steps )
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+To the dataset with the filled-in missing values will be added a column which indicates if it is a
+weekday or weekend.
+
+```{r weekdays_in_imputed_dataset}
+data.imputed[weekdays(date) %in% c("Saturday", "Sunday"), day_type := 'weekend']
+data.imputed[!weekdays(date) %in% c("Saturday", "Sunday"), day_type := 'weekday']
+```
+
+To compare the mean steps taken in weekend against working day a proper data table should be created
+
+```{r means_steps_by_day_type}
+data.day_type_mean <- data.imputed[,mean(steps), by=c("day_type", "interval")]
+setnames(data.day_type_mean, c("day_type", "interval", "avg_steps"))
+```
+
+The best method of comparing the activities during working days and weekend is to plot them. 
+
+```{r plot_day_type_mean_steps}
+plot.day_steps <- ggplot(data.day_type_mean, aes(x=interval, y=avg_steps))
+plot.day_steps <- plot.day_steps + geom_line(colour="darkblue") + geom_point(colour="steelblue")
+plot.day_steps <- plot.day_steps + facet_grid(day_type ~ .)
+plot.day_steps <- plot.day_steps + ggtitle("Comparsion of activities in weekday and weekend")
+plot.day_steps <- plot.day_steps + xlab("Intervals") + ylab("Avarage Steps")
+plot.day_steps
+```
+
+
