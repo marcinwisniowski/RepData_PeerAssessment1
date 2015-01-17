@@ -1,9 +1,5 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output:
-  html_document:
-    keep_md: true
----
+#"Reproducible Research: Peer Assessment 1"
+
 This Data analysis is created for a peer assessment for  
 [Reproductive Reserarch](https://www.coursera.org/course/repdata) course which is module in 
 Data Science Specialization by Johns Hopkins University.
